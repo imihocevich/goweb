@@ -65,9 +65,19 @@ func main() {
 
 	//Crear una ruta /products/search que nos permita buscar por parámetro los productos cuyo precio sean mayor a un valor priceGt.
 	router.GET("/products/search", func(c *gin.Context) {
-		var query Query
-		
-	}
+		priceQuery, err := strconv.ParseFloat(c.Query("priceGt"), 64)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		}
+
+		var productgt []Product
+
+		for _, v := range products {
+			if v.Price > priceQuery {
+				productgt = append(productgt, v)
+			}
+		}
+		c.JSON(http.StatusOK, productgt)
 	})
 
 	err = router.Run()
