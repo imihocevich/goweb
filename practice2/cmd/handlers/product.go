@@ -16,7 +16,7 @@ func GetAll(c *gin.Context) {
 func AddProduct(c *gin.Context) {
 	var addproduct models.Product
 
-	err := c.ShouldBind(&addproduct)
+	err := c.ShouldBindJSON(&addproduct)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
