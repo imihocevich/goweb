@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"errors"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/imihocevich/goweb/practice3/internal/domain"
 	"github.com/imihocevich/goweb/practice3/internal/product"
+	"github.com/imihocevich/goweb/practice3/pkg/web"
 )
 
 type pHandler struct {
@@ -44,59 +47,86 @@ func (h *pHandler) GetByID() gin.HandlerFunc {
 func (h *pHandler) Post() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var p domain.Product
+		token := c.GetHeader("TOKEN")
+		if token == "" {
+			web.Failure(c, 401, errors.New("token not set"))
+			return
+		}
+		if token != os.Getenv("TOKEN") {
+			web.Failure(c, 401, errors.New("invalid token"))
+			return
+		}
 		err := c.ShouldBindJSON(&p)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid product"})
+			web.Failure(c, 400, errors.New("invalid json"))
 			return
 		}
 		product, err := h.s.Create(p)
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			web.Failure(c, 400, err)
 			return
 		}
-		c.JSON(201, product)
+		web.Success(c, 201, product)
 	}
 
 }
 
 func (h *pHandler) Delete() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		token := c.GetHeader("TOKEN")
+		if token == "" {
+			web.Failure(c, 401, errors.New("token not set"))
+			return
+		}
+		if token != os.Getenv("TOKEN") {
+			web.Failure(c, 401, errors.New("invalid token"))
+			return
+		}
 		idp := c.Param("id")
 		id, err := strconv.Atoi(idp)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid id"})
+			web.Failure(c, 400, errors.New("invalid id"))
 			return
 		}
 		err = h.s.Delete(id)
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			web.Failure(c, 400, err)
 			return
 		}
-		c.JSON(200, gin.H{"success": "deleted successfully"})
+		web.Success(c, 200, nil)
 
 	}
 }
 
 func (h *pHandler) Put() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		token := c.GetHeader("TOKEN")
+		if token == "" {
+			web.Failure(c, 401, errors.New("token not set"))
+			return
+		}
+		if token != os.Getenv("TOKEN") {
+			web.Failure(c, 401, errors.New("invalid token"))
+			return
+		}
 		idp := c.Param("id")
 		id, err := strconv.Atoi(idp)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid id"})
+			web.Failure(c, 400, errors.New("invalid id"))
 			return
 		}
 		var product domain.Product
 		err = c.ShouldBindJSON(&product)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid product"})
+			web.Failure(c, 400, errors.New("invalid json"))
 			return
 		}
 		p, err := h.s.Update(id, product)
 		if err != nil {
-			c.JSON(409, gin.H{"error": err.Error()})
+			web.Failure(c, 409, err)
 			return
 		}
-		c.JSON(200, p)
+		web.Success(c, 200, p)
 
 	}
 }
@@ -111,16 +141,25 @@ func (h *pHandler) Patch() gin.HandlerFunc {
 		Price       float64 `json:"price,omitempty"`
 	}
 	return func(c *gin.Context) {
+		token := c.GetHeader("TOKEN")
+		if token == "" {
+			web.Failure(c, 401, errors.New("token not set"))
+			return
+		}
+		if token != os.Getenv("TOKEN") {
+			web.Failure(c, 401, errors.New("invalid token"))
+			return
+		}
 		var r Request
 		idp := c.Param("id")
 		id, err := strconv.Atoi(idp)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid id"})
+			web.Failure(c, 400, errors.New("invalid id"))
 			return
 		}
 		err = c.ShouldBindJSON(&r)
 		if err != nil {
-			c.JSON(400, gin.H{"error": "invalid request"})
+			web.Failure(c, 400, errors.New("invalid request"))
 			return
 		}
 		update := domain.Product{
@@ -133,10 +172,10 @@ func (h *pHandler) Patch() gin.HandlerFunc {
 		}
 		p, err := h.s.Update(id, update)
 		if err != nil {
-			c.JSON(409, gin.H{"error": err.Error()})
+			web.Failure(c, 409, err)
 			return
 		}
-		c.JSON(200, p)
+		web.Success(c, 200, p)
 
 	}
 }

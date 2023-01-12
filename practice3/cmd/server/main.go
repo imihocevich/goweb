@@ -8,9 +8,14 @@ import (
 	"github.com/imihocevich/goweb/practice3/cmd/server/handler"
 	"github.com/imihocevich/goweb/practice3/internal/domain"
 	"github.com/imihocevich/goweb/practice3/internal/product"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	if err := godotenv.Load("/Users/imihocevich/Desktop/goweb/practice3/cmd/server/.env"); err != nil {
+		panic("Error loading .env file: " + err.Error())
+	}
+
 	productList := []domain.Product{}
 	loadFile("/Users/imihocevich/Desktop/goweb/products.json", &productList)
 
